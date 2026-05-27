@@ -1,0 +1,13 @@
+{
+  "base_url": "https://www.saucedemo.com/",
+  "usuario_valido": "standard_user",
+  "password_valido": "secret_sauce",
+  "usuario_invalido": "usuario_inexistente",
+  "password_invalido": "clave_incorrecta",
+  "titulo_catalogo": "Products",
+  "mensaje_error_login_contiene": "do not match",
+  "producto_nombre": "Sauce Labs Backpack",
+  "producto_slug": "sauce-labs-backpack",
+  "producto_precio_mas_bajo": "Sauce Labs Onesie",
+  "filtro_precio_menor_mayor": "lohi"
+}

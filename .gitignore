@@ -1,0 +1,9 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+.venv/
+venv/
+reports/*.html
+reports/*.png
+reports/*.log
+!reports/.gitkeep
