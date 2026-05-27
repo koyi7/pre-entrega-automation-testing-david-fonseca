@@ -7,3 +7,4 @@ reports/*.html
 reports/*.png
 reports/*.log
 !reports/.gitkeep
+!reports/reporte_ejemplo.html
