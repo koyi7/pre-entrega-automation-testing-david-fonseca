@@ -4,6 +4,10 @@
 
 Proyecto de automatización web con **Pytest** y **Selenium** sobre [Sauce Demo](https://www.saucedemo.com/), alineado a la pre-entrega de Talento Tech.
 
+## Repositorio
+
+**GitHub:** [https://github.com/koyi7/pre-entrega-automation-testing-david-fonseca](https://github.com/koyi7/pre-entrega-automation-testing-david-fonseca)
+
 ## Tecnologías
 
 - Python 3
@@ -40,19 +44,23 @@ pytest tests/ -v --html=reports/reporte.html --self-contained-html
 | `test_carrito_agregar_producto` | Agregar al carrito y verificar en la página del carrito |
 | `test_carrito_remover_producto` | Quitar producto y carrito vacío |
 
-Los datos de prueba (usuarios, productos, textos esperados) están en `datos/config.json`.
+Los datos de prueba (usuarios, productos, textos esperados) están en `datos/config.json` (sin datos hardcodeados en los tests).
 
-- El reporte HTML queda en `reports/reporte.html`.
-- Si un test falla, se guarda una **captura de pantalla** en `reports/` (nombre que incluye el test y la fecha).
+> **Nota:** Sauce Demo no tiene buscador de texto; la validación de “producto específico” se hace verificando que el producto configurado aparece en el listado del inventario.
 
-## Estructura mínima
+## Evidencias de ejecución
+
+| Evidencia | Ubicación |
+|-----------|-----------|
+| Reporte HTML (ejemplo con 6 tests OK) | `reports/reporte_ejemplo.html` |
+| Reporte al ejecutar localmente | `reports/reporte.html` (generado con el comando de arriba) |
+| Capturas en fallo | `reports/FAIL_*.png` (automático vía `conftest.py`) |
+
+## Estructura del proyecto
 
 - `tests/` — casos de prueba
 - `pages/` — Page Object Model
 - `utils/` — funciones auxiliares
-- `datos/` — datos externos (CSV, JSON, etc.) cuando se usen
-- `reports/` — reporte HTML y capturas de fallos
-
-## Repositorio en GitHub
-
-El nombre del repositorio debe seguir el patrón indicado en la consigna, por ejemplo: `pre-entrega-automation-testing-nombre-apellido`.
+- `datos/` — datos externos (JSON)
+- `reports/` — reportes HTML y capturas de fallos
+- `conftest.py` — fixture `driver` y capturas automáticas
