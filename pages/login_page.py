@@ -2,6 +2,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class LoginPage:
     def __init__(self, driver, base_url):
@@ -16,6 +20,7 @@ class LoginPage:
 
     def open(self):
         self.driver.get(self.url)
+        logger.info("Se abrió la URL: %s", self.url)
 
     def login(self, user, password):
         wait = WebDriverWait(self.driver, 10)
@@ -29,6 +34,7 @@ class LoginPage:
         password_input.send_keys(password)
 
         wait.until(EC.element_to_be_clickable(self.login_button)).click()
+        logger.info("Se intentó login con usuario: %s", user)
 
     def get_title(self):
         wait = WebDriverWait(self.driver, 10)

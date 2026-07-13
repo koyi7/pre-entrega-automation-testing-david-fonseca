@@ -6,5 +6,7 @@ venv/
 reports/*.html
 reports/*.png
 reports/*.log
+reports/logs/
+reports/_pdf_pages/
 !reports/.gitkeep
 !reports/reporte_ejemplo.html

@@ -1,86 +1,146 @@
+import pytest
+
 from pages.cart_page import CartPage
+from pages.checkout_page import CheckoutPage
 from pages.inventory_page import InventoryPage
 from pages.login_page import LoginPage
 from utils.data_loader import cargar_config
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+CONFIG = cargar_config()
 
 
-def _login_exitoso(driver):
-    """Flujo común: abrir sitio e iniciar sesión con credenciales válidas."""
-    config = cargar_config()
-    login_page = LoginPage(driver, config["base_url"])
+def _ids_usuarios(casos):
+    return [caso["descripcion"] for caso in casos]
+
+
+@pytest.mark.parametrize(
+    "credenciales",
+    CONFIG["usuarios_validos"],
+    ids=_ids_usuarios(CONFIG["usuarios_validos"]),
+)
+def test_login_exitoso_parametrizado(driver, credenciales):
+    """Login válido con distintos usuarios cargados desde datos externos."""
+    login_page = LoginPage(driver, CONFIG["base_url"])
     login_page.open()
-    login_page.login(config["usuario_valido"], config["password_valido"])
-    return config, login_page
+    login_page.login(credenciales["usuario"], credenciales["password"])
 
-
-def test_login_exitoso(driver):
-    config, login_page = _login_exitoso(driver)
-
-    titulo_obtenido = login_page.get_title()
-    assert titulo_obtenido == config["titulo_catalogo"], (
-        f"Error: se esperaba '{config['titulo_catalogo']}' pero se obtuvo '{titulo_obtenido}'"
+    titulo = login_page.get_title()
+    assert titulo == CONFIG["titulo_catalogo"], (
+        f"Error: se esperaba '{CONFIG['titulo_catalogo']}' pero se obtuvo '{titulo}'"
     )
 
 
-def test_login_invalido(driver):
-    config = cargar_config()
-    login_page = LoginPage(driver, config["base_url"])
+@pytest.mark.parametrize(
+    "credenciales",
+    CONFIG["usuarios_invalidos"],
+    ids=_ids_usuarios(CONFIG["usuarios_invalidos"]),
+)
+def test_login_invalido_parametrizado(driver, credenciales):
+    """Escenarios negativos de login con datos externos."""
+    login_page = LoginPage(driver, CONFIG["base_url"])
     login_page.open()
-    login_page.login(config["usuario_invalido"], config["password_invalido"])
+    login_page.login(credenciales["usuario"], credenciales["password"])
 
     mensaje = login_page.get_error_message()
-    assert config["mensaje_error_login_contiene"] in mensaje, (
-        f"Error: el mensaje no contiene el texto esperado. Mensaje obtenido: '{mensaje}'"
+    esperado = credenciales["mensaje_contiene"]
+    assert esperado in mensaje, (
+        f"Error: se esperaba un mensaje que contenga '{esperado}'. "
+        f"Mensaje obtenido: '{mensaje}'"
     )
 
 
 def test_catalogo_producto_visible(driver):
-    config, _ = _login_exitoso(driver)
-    inventory = InventoryPage(driver)
+    login_page = LoginPage(driver, CONFIG["base_url"])
+    login_page.open()
+    login_page.login(CONFIG["usuario_valido"], CONFIG["password_valido"])
 
-    assert inventory.get_title() == config["titulo_catalogo"]
-    assert inventory.product_exists(config["producto_nombre"]), (
-        f"Error: no se encontró el producto '{config['producto_nombre']}' en el catálogo"
+    inventory = InventoryPage(driver)
+    assert inventory.get_title() == CONFIG["titulo_catalogo"]
+    assert inventory.product_exists(CONFIG["producto_nombre"]), (
+        f"Error: no se encontró el producto '{CONFIG['producto_nombre']}' en el catálogo"
     )
 
 
 def test_catalogo_filtro_precio(driver):
-    config, _ = _login_exitoso(driver)
-    inventory = InventoryPage(driver)
+    login_page = LoginPage(driver, CONFIG["base_url"])
+    login_page.open()
+    login_page.login(CONFIG["usuario_valido"], CONFIG["password_valido"])
 
-    inventory.sort_by(config["filtro_precio_menor_mayor"])
+    inventory = InventoryPage(driver)
+    inventory.sort_by(CONFIG["filtro_precio_menor_mayor"])
     primer_producto = inventory.get_first_product_name()
 
-    assert primer_producto == config["producto_precio_mas_bajo"], (
+    assert primer_producto == CONFIG["producto_precio_mas_bajo"], (
         f"Error: tras ordenar por precio (menor a mayor) se esperaba "
-        f"'{config['producto_precio_mas_bajo']}' pero se obtuvo '{primer_producto}'"
+        f"'{CONFIG['producto_precio_mas_bajo']}' pero se obtuvo '{primer_producto}'"
     )
 
 
 def test_carrito_agregar_producto(driver):
-    config, _ = _login_exitoso(driver)
-    inventory = InventoryPage(driver)
+    login_page = LoginPage(driver, CONFIG["base_url"])
+    login_page.open()
+    login_page.login(CONFIG["usuario_valido"], CONFIG["password_valido"])
 
-    inventory.add_product_to_cart(config["producto_slug"])
+    inventory = InventoryPage(driver)
+    inventory.add_product_to_cart(CONFIG["producto_slug"])
     assert inventory.get_cart_badge_count() == "1"
 
     inventory.go_to_cart()
     cart = CartPage(driver)
 
     assert cart.get_title() == "Your Cart"
-    assert cart.product_in_cart(config["producto_nombre"]), (
-        f"Error: '{config['producto_nombre']}' no está en el carrito"
+    assert cart.product_in_cart(CONFIG["producto_nombre"]), (
+        f"Error: '{CONFIG['producto_nombre']}' no está en el carrito"
     )
 
 
 def test_carrito_remover_producto(driver):
-    config, _ = _login_exitoso(driver)
-    inventory = InventoryPage(driver)
+    login_page = LoginPage(driver, CONFIG["base_url"])
+    login_page.open()
+    login_page.login(CONFIG["usuario_valido"], CONFIG["password_valido"])
 
-    inventory.add_product_to_cart(config["producto_slug"])
+    inventory = InventoryPage(driver)
+    inventory.add_product_to_cart(CONFIG["producto_slug"])
     inventory.go_to_cart()
 
     cart = CartPage(driver)
-    cart.remove_product(config["producto_slug"])
+    cart.remove_product(CONFIG["producto_slug"])
 
     assert cart.is_cart_empty(), "Error: el carrito debería quedar vacío tras eliminar el producto"
+
+
+def test_flujo_completo_checkout(driver):
+    """Flujo completo: login → catálogo → carrito → checkout → confirmación."""
+    checkout_data = CONFIG["checkout"]
+
+    login_page = LoginPage(driver, CONFIG["base_url"])
+    login_page.open()
+    login_page.login(CONFIG["usuario_valido"], CONFIG["password_valido"])
+    logger.info("Login OK en flujo de checkout")
+
+    inventory = InventoryPage(driver)
+    inventory.add_product_to_cart(CONFIG["producto_slug"])
+    inventory.go_to_cart()
+
+    cart = CartPage(driver)
+    assert cart.product_in_cart(CONFIG["producto_nombre"])
+
+    checkout = CheckoutPage(driver)
+    checkout.click_checkout()
+    checkout.fill_checkout_info(
+        checkout_data["nombre"],
+        checkout_data["apellido"],
+        checkout_data["codigo_postal"],
+    )
+
+    total = checkout.get_summary_total()
+    assert "Total:" in total, f"Error: no se encontró el total en el resumen. Valor: '{total}'"
+
+    checkout.finish_order()
+    mensaje = checkout.get_success_message()
+    assert mensaje == checkout_data["mensaje_exito"], (
+        f"Error: se esperaba '{checkout_data['mensaje_exito']}' pero se obtuvo '{mensaje}'"
+    )
+    logger.info("Checkout completado con éxito")
