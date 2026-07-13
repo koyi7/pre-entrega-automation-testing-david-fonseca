@@ -6,9 +6,7 @@ Framework de automatización de pruebas que integra **UI (Selenium)** y **API (R
 
 ## Repositorio
 
-**GitHub:** [https://github.com/koyi7/pre-entrega-automation-testing-david-fonseca](https://github.com/koyi7/pre-entrega-automation-testing-david-fonseca)
-
-> Nota: si el course exige el nombre `proyecto-final-automation-testing-[nombre-apellido]`, se puede renombrar el repositorio en GitHub Settings → General → Repository name.
+**GitHub:** [https://github.com/koyi7/proyecto-final-automation-testing-david-fonseca](https://github.com/koyi7/proyecto-final-automation-testing-david-fonseca)
 
 ## Tecnologías
 
